@@ -1,0 +1,14 @@
+---
+bundle:
+  name: databricks_agent_testing
+include:
+  - resources/*.yml
+variables:
+  catalog_storage_root:
+    description: >-
+      Managed storage path for the catalog. Set BUNDLE_VAR_catalog_storage_root in .env; do not commit a workspace URL.
+targets:
+  dev:
+    default: true
+    workspace:
+      profile: fevm-az-cc

@@ -1,0 +1,7 @@
+---
+resources:
+  catalogs:
+    databricks_agent_testing:
+      name: databricks_agent_testing
+      comment: Catalog managed by the databricks_agent_testing bundle.
+      storage_root: ${var.catalog_storage_root}
