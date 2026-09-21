@@ -1,0 +1,18 @@
+---
+resources:
+  model_services:
+    demo_model:
+      comment: "Used by demo agents"
+      model_service_id: "demo_model"
+      parent: "schemas/${resources.catalogs.databricks_agent_testing.name}.default"
+      config:
+        inference_table:
+          parent: "schemas/${resources.catalogs.databricks_agent_testing.name}.default"
+          table_name_prefix: "demo_model_inference"
+        routing:
+          destinations:
+            - name: primary
+              destination_type: DESTINATION_TYPE_PAY_PER_TOKEN_FOUNDATION_MODEL
+              pay_per_token_config:
+                model: models/system.ai.qwen3-next-80b-a3b-instruct
+              traffic_percentage: 100
