@@ -1,0 +1,8 @@
+[project]
+name = "databricks-agent-testing"
+version = "0.1.0"
+description = "Databricks agent deployment project"
+requires-python = ">=3.11"
+dependencies = [
+    "databricks-mason",
+]
