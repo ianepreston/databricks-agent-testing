@@ -149,7 +149,6 @@ activemq-data/
 
 # Environments
 .env
-.envrc
 .venv
 env/
 venv/
@@ -219,3 +218,6 @@ __marimo__/
 
 # Databricks Asset Bundle deployment state
 .databricks/
+
+# Databricks coding assistant files
+.isaac
