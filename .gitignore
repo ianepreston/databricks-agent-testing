@@ -221,3 +221,8 @@ __marimo__/
 
 # Databricks coding assistant files
 .isaac
+
+# Mason local session store
+local_agent_sessions.db
+local_agent_sessions.db-*
+*.db-journal

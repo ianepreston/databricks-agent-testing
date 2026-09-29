@@ -1,0 +1,23 @@
+command:
+- uv
+- run
+- start-server
+env:
+- name: MLFLOW_TRACKING_URI
+  value: databricks
+- name: MLFLOW_EXPERIMENT_ID
+  value: '3139917867183237'
+- name: AGENT_MEMORY_STORE
+  value: mason-test-agent-awugfb-memory
+- name: AGENT_SESSION_STORE
+  value: mason-test-agent-awugfb-sessions
+- name: DATABRICKS_MASON_RUNTIME_STORE_LAKEBASE_ENDPOINT
+  value: projects/agent-mason-test-runtime-store/branches/production/endpoints/primary
+- name: DATABRICKS_MASON_RUNTIME_STORE_SCHEMA
+  value: databricks_mason_runtime_af2954ed6c2d
+- name: PIP_INDEX_URL
+  value: https://pypi.org/simple/
+- name: UV_INDEX_URL
+  value: https://pypi.org/simple/
+- name: UV_DEFAULT_INDEX
+  value: https://pypi.org/simple/

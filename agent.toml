@@ -1,0 +1,15 @@
+schema_version = 1
+
+[agent]
+framework = "langgraph"
+server = "mason"
+deployment_name = "test"
+
+[memory_store]
+name = "mason-test-agent-awugfb-memory"
+
+[session_store]
+name = "mason-test-agent-awugfb-sessions"
+
+[tracing]
+experiment_id = "3139917867183237"
