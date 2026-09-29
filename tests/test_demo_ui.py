@@ -356,6 +356,7 @@ def _endpoint(name, task="llm/v1/chat", ready="READY"):
 
 def test_discover_chat_models_filters_pins_default_and_dedups(monkeypatch):
     monkeypatch.setattr(ui, "_default_model", lambda: "databricks-gpt-5-2")
+    monkeypatch.setattr(ui, "_uses_ai_gateway", lambda: False)
     endpoints = [
         _endpoint("databricks-claude-sonnet-4"),
         _endpoint("an-embedding-model", task="llm/v1/embeddings"),  # dropped: wrong task
@@ -373,6 +374,7 @@ def test_discover_chat_models_filters_pins_default_and_dedups(monkeypatch):
 
 def test_discover_chat_models_falls_back_to_default_on_error(monkeypatch):
     monkeypatch.setattr(ui, "_default_model", lambda: "databricks-gpt-5-2")
+    monkeypatch.setattr(ui, "_uses_ai_gateway", lambda: False)
 
     def _boom():
         raise PermissionError("no listing permission")
@@ -387,6 +389,7 @@ def test_discover_chat_models_falls_back_to_default_on_error(monkeypatch):
 
 def test_discover_chat_models_ranks_foundation_first_and_caps(monkeypatch):
     monkeypatch.setattr(ui, "_default_model", lambda: "databricks-gpt-5-2")
+    monkeypatch.setattr(ui, "_uses_ai_gateway", lambda: False)
     # A big workspace: many custom endpoints plus a few foundation models. The cap must keep the
     # default and the databricks-* foundation models, not an arbitrary alphabetical slice of customs.
     endpoints = [_endpoint(f"zz-custom-{i:03d}") for i in range(30)]
@@ -408,6 +411,7 @@ def test_discover_chat_models_retries_transient_list_error(monkeypatch):
     import time
 
     monkeypatch.setattr(ui, "_default_model", lambda: "databricks-gpt-5-2")
+    monkeypatch.setattr(ui, "_uses_ai_gateway", lambda: False)
     monkeypatch.setattr(time, "sleep", lambda _s: None)  # don't actually wait between retries
     calls = {"n": 0}
 
@@ -423,6 +427,18 @@ def test_discover_chat_models_retries_transient_list_error(monkeypatch):
     # First attempt fails, second succeeds -> the endpoint is discovered, not lost.
     assert ui._discover_chat_models() == ["databricks-gpt-5-2", "databricks-gpt-5-5"]
     assert calls["n"] == 2
+
+
+def test_discover_chat_models_returns_only_the_gateway_model(monkeypatch):
+    monkeypatch.setattr(ui, "_default_model", lambda: "system.ai.qwen3-next-80b-a3b-instruct")
+    monkeypatch.setattr(ui, "_uses_ai_gateway", lambda: True)
+    monkeypatch.setattr(
+        ui,
+        "_list_chat_endpoints",
+        lambda: pytest.fail("gateway mode must not list serving endpoints"),
+    )
+
+    assert ui._discover_chat_models() == ["system.ai.qwen3-next-80b-a3b-instruct"]
 
 
 @pytest.mark.asyncio

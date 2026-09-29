@@ -21,7 +21,10 @@ from databricks_mason.langgraph import (
     thread_config,
 )
 
-MODEL = "databricks-gpt-5-2"
+# AI Gateway accepts fully qualified Unity Catalog model names, unlike the direct Model Serving
+# path, which expects a serving endpoint name.
+MODEL = "system.ai.qwen3-next-80b-a3b-instruct"
+USE_AI_GATEWAY = True
 _INVOCATION_METADATA_KEY = "databricks_mason.invocation_id"
 
 # Tools that require human approval before they run. Map a tool name to True to allow every decision
@@ -59,7 +62,9 @@ def _check_databricks_auth() -> None:
     except Exception as e:
         profile = os.getenv("DATABRICKS_CONFIG_PROFILE")
         target = (
-            f"profile {profile!r}" if profile else "the DEFAULT profile / DATABRICKS_HOST+TOKEN"
+            f"profile {profile!r}"
+            if profile
+            else "the DEFAULT profile / DATABRICKS_HOST+TOKEN"
         )
         raise RuntimeError(
             f"Databricks auth is not configured — the agent can't call the model. Tried {target}.\n"
@@ -77,18 +82,24 @@ async def create_agent_graph(actor: str, model: str | None = None):
     ``actor`` is the identity whose long-term memory the agent reads/writes; it's captured in the
     memory tools' closures (never exposed to the model).
 
-    ``model`` selects the serving endpoint for this run; the chat UI passes the picker's choice and
-    everything else falls back to ``MODEL``. The agent is rebuilt per turn, so the endpoint can vary
-    request to request.
+    ``model`` selects the model for this run; the chat UI passes the picker's choice and everything
+    else falls back to ``MODEL``. With AI Gateway enabled, it is a fully qualified Unity Catalog
+    model name. The agent is rebuilt per turn, so the model can vary request to request.
     """
     mcp = await mcp_tools(build_mcp_servers())
     tools = [*all_tools(), *memory_tools(actor), *genie_tools(), *mcp]
     middleware = (
-        [HumanInTheLoopMiddleware(interrupt_on=REQUIRE_APPROVAL)] if REQUIRE_APPROVAL else []
+        [HumanInTheLoopMiddleware(interrupt_on=REQUIRE_APPROVAL)]
+        if REQUIRE_APPROVAL
+        else []
     )
-    endpoint = model or MODEL
+    model_name = model or MODEL
     return create_agent(
-        model=_RoutedChatDatabricks(endpoint=endpoint, workspace_client=workspace_client()),
+        model=_RoutedChatDatabricks(
+            model=model_name,
+            use_ai_gateway=USE_AI_GATEWAY,
+            workspace_client=workspace_client(),
+        ),
         tools=tools,
         middleware=middleware,
         checkpointer=checkpointer(),
@@ -109,7 +120,8 @@ async def recovery_input(
     """
     checkpoint = await checkpointer().aget_tuple(thread_config(session_id, actor))
     current_invocation_checkpointed = bool(
-        checkpoint and checkpoint.metadata.get(_INVOCATION_METADATA_KEY) == invocation_id
+        checkpoint
+        and checkpoint.metadata.get(_INVOCATION_METADATA_KEY) == invocation_id
     )
     return None if current_invocation_checkpointed else agent_input
 

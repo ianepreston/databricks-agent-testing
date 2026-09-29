@@ -62,12 +62,15 @@ def test_configure_raises_clear_error_without_auth(monkeypatch):
 
 
 def test_chat_model_forwards_account_routing_header(monkeypatch):
-    from agent.agent import _RoutedChatDatabricks
+    from agent.agent import USE_AI_GATEWAY, _RoutedChatDatabricks
 
     monkeypatch.setenv("DATABRICKS_WORKSPACE_ID", "123456")
-    model = _RoutedChatDatabricks(endpoint="test-endpoint")
+    model = _RoutedChatDatabricks(model="system.ai.test-model", use_ai_gateway=USE_AI_GATEWAY)
 
-    assert model._get_client_kwargs()["default_headers"] == {"X-Databricks-Org-Id": "123456"}
+    assert model._get_client_kwargs() == {
+        "use_ai_gateway": True,
+        "default_headers": {"X-Databricks-Org-Id": "123456"},
+    }
 
 
 def test_thread_config_from_session_id():

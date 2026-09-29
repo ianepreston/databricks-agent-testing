@@ -158,6 +158,13 @@ def _default_model() -> str:
     return MODEL
 
 
+def _uses_ai_gateway() -> bool:
+    """Whether the agent expects Unity Catalog model names rather than endpoint names."""
+    from agent.agent import USE_AI_GATEWAY
+
+    return USE_AI_GATEWAY
+
+
 def _list_chat_endpoints() -> list[str]:
     """Names of the workspace's ready chat serving endpoints, retrying the flaky list call.
 
@@ -201,12 +208,16 @@ def _rank_models(default: str, names: list[str]) -> list[str]:
 
 
 def _discover_chat_models() -> list[str]:
-    """The chat serving endpoints for the picker: default first, foundation models next, capped.
+    """The compatible models for the picker, with the configured default pinned first.
 
-    Best-effort: if listing fails (missing permission, repeated transient errors), fall back to just
-    the default so the picker still works. The default is always present and first.
+    AI Gateway accepts Unity Catalog model names, whereas direct Model Serving accepts endpoint
+    names. Do not offer serving endpoints in gateway mode: picking one would send it through the
+    wrong route. For direct serving, discovery is best-effort and falls back to the default when
+    listing fails.
     """
     default = _default_model()
+    if _uses_ai_gateway():
+        return [default]
     try:
         names = _list_chat_endpoints()
     except Exception:  # noqa: BLE001 - a broken listing must not break the whole config endpoint
