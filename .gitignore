@@ -221,3 +221,15 @@ __marimo__/
 
 # Databricks coding assistant files
 .isaac
+
+# Editor / OS
+.DS_Store
+.vscode/
+
+# Local Claude Code settings (shared skills under .claude/skills are committed)
+.claude/settings.local.json
+
+# App tooling output
+node_modules/
+**/mlruns/
+load-test-runs/

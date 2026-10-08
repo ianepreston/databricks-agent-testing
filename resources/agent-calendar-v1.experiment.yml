@@ -1,0 +1,4 @@
+resources:
+  experiments:
+    agent_calendar_v1_tracing:
+      name: /Users/${workspace.current_user.userName}/agent-calendar-v1

@@ -1,0 +1,24 @@
+---
+resources:
+  apps:
+    agent_calendar_v1:
+      name: agent-calendar-v1
+      description: Minimal OpenAI Agents SDK calendar assistant backed by Unity Gateway.
+      source_code_path: ../agent-calendar-v1
+      lifecycle:
+        started: true
+      user_api_scopes:
+        - ai-gateway
+      config:
+        command:
+          - uv
+          - run
+          - start-server
+        env:
+          - name: UV_DEFAULT_INDEX
+            value: https://pypi.org/simple
+      resources:
+        - name: experiment
+          experiment:
+            experiment_id: ${resources.experiments.agent_calendar_v1_tracing.id}
+            permission: CAN_MANAGE

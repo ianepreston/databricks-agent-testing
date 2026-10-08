@@ -1,0 +1,45 @@
+---
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: '3'
+set: [pipefail]
+
+tasks:
+  default:
+    desc: List available development tasks
+    cmd: task --list
+    silent: true
+
+  sync:
+    desc: Install the locked Python dependencies for local development
+    cmd: uv sync --project agent-calendar-v1 --frozen
+
+  run:
+    desc: Start the local chat app at http://localhost:8000
+    cmd: uv run --project agent-calendar-v1 --frozen start-server
+
+  preflight:
+    desc: Start the app temporarily and verify /health plus one chat request
+    deps: [require-profile]
+    cmd: uv run --project agent-calendar-v1 --frozen preflight
+
+  test:
+    desc: Run the automated test suite
+    cmd: uv run --project agent-calendar-v1 --frozen pytest agent-calendar-v1/tests
+
+  bundle:validate:
+    desc: Strictly validate the bundle (requires BUNDLE_VAR_catalog_storage_root)
+    deps: [require-bundle-settings]
+    cmd: databricks bundle validate --strict -t dev --profile "$DATABRICKS_CONFIG_PROFILE"
+
+  check:
+    desc: Run the local preflight and automated tests
+    deps: [preflight, test]
+
+  require-profile:
+    internal: true
+    cmd: test -n "${DATABRICKS_CONFIG_PROFILE:-}" || { echo 'DATABRICKS_CONFIG_PROFILE is unset. Run direnv allow or configure .env.' >&2; exit 1; }
+
+  require-bundle-settings:
+    internal: true
+    deps: [require-profile]
+    cmd: test -n "${BUNDLE_VAR_catalog_storage_root:-}" || { echo 'BUNDLE_VAR_catalog_storage_root is unset. Configure it in .env before bundle validation.' >&2; exit 1; }
